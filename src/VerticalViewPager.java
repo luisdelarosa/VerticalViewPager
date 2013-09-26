@@ -70,7 +70,7 @@ import android.widget.Scroller;
 /**
  * Layout manager that allows the user to flip left and right
  * through pages of data.  You supply an implementation of a
- * {@link PagerAdapter} to generate the pages that the view shows.
+ * {@link VerticalPagerAdapter} to generate the pages that the view shows.
  *
  * <p>Note this class is currently under early design and
  * development.  The API will likely change in later updates of
@@ -139,7 +139,7 @@ public class VerticalViewPager extends ViewGroup {
 
     private final Rect mTempRect = new Rect();
 
-    private PagerAdapter mAdapter;
+    private VerticalPagerAdapter mAdapter;
     private int mCurItem;   // Index of currently displayed page.
     private int mRestoredCurItem = -1;
     private Parcelable mRestoredAdapterState = null;
@@ -337,7 +337,7 @@ public class VerticalViewPager extends ViewGroup {
      * Used internally to monitor when adapters are switched.
      */
     interface OnAdapterChangeListener {
-        public void onAdapterChanged(PagerAdapter oldAdapter, PagerAdapter newAdapter);
+        public void onAdapterChanged(VerticalPagerAdapter oldAdapter, VerticalPagerAdapter newAdapter);
     }
 
     /**
@@ -413,7 +413,7 @@ public class VerticalViewPager extends ViewGroup {
      *
      * @param adapter Adapter to use
      */
-    public void setAdapter(PagerAdapter adapter) {
+    public void setAdapter(VerticalPagerAdapter adapter) {
         if (mAdapter != null) {
             mAdapter.unregisterDataSetObserver(mObserver);
             mAdapter.startUpdate(this);
@@ -428,7 +428,7 @@ public class VerticalViewPager extends ViewGroup {
             scrollTo(0, 0);
         }
 
-        final PagerAdapter oldAdapter = mAdapter;
+        final VerticalPagerAdapter oldAdapter = mAdapter;
         mAdapter = adapter;
 
         if (mAdapter != null) {
@@ -470,7 +470,7 @@ public class VerticalViewPager extends ViewGroup {
      *
      * @return The currently registered PagerAdapter
      */
-    public PagerAdapter getAdapter() {
+    public VerticalPagerAdapter getAdapter() {
         return mAdapter;
     }
 
@@ -841,11 +841,11 @@ public class VerticalViewPager extends ViewGroup {
             final ItemInfo ii = mItems.get(i);
             final int newPos = mAdapter.getItemPosition(ii.object);
 
-            if (newPos == PagerAdapter.POSITION_UNCHANGED) {
+            if (newPos == VerticalPagerAdapter.POSITION_UNCHANGED) {
                 continue;
             }
 
-            if (newPos == PagerAdapter.POSITION_NONE) {
+            if (newPos == VerticalPagerAdapter.POSITION_NONE) {
                 mItems.remove(i);
                 i--;
 
