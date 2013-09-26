@@ -76,7 +76,7 @@ import android.view.ViewGroup;
  * ViewPager will keep the current page active provided the adapter implements
  * the method {@link #getItemPosition(Object)}.</p>
  */
-public abstract class PagerAdapter {
+public abstract class VerticalPagerAdapter {
     private DataSetObservable mObservable = new DataSetObservable();
 
     public static final int POSITION_UNCHANGED = -1;
@@ -107,7 +107,7 @@ public abstract class PagerAdapter {
      * @return Returns an Object representing the new page.  This does not
      * need to be a View, but can be some other container of the page.
      */
-    public Object instantiateItem(ViewGroup container, int position) {
+	public Object instantiateItem(ViewGroup container, int position) {
         return instantiateItem((View) container, position);
     }
 
