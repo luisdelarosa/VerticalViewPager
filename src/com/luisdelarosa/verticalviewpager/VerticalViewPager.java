@@ -919,18 +919,18 @@ public class VerticalViewPager extends ViewGroup {
         // on creating views from the time the user releases their finger to
         // fling to a new position until we have finished the scroll to
         // that position, avoiding glitches from happening at that point.
-//        if (mPopulatePending) {
-//            if (DEBUG) Log.i(TAG, "populate is pending, skipping for now...");
-//            return;
-//        }
+        if (mPopulatePending) {
+            if (DEBUG) Log.i(TAG, "populate is pending, skipping for now...");
+            return;
+        }
 
         // Also, don't populate until we are attached to a window.  This is to
         // avoid trying to populate before we have restored our view hierarchy
         // state and conflicting with what is restored.
-//        if (getWindowToken() == null) {
-//        	if (DEBUG) Log.i(TAG, "no window");
-//            return;
-//        }
+        if (getWindowToken() == null) {
+        	if (DEBUG) Log.i(TAG, "no window");
+            return;
+        }
 
         mAdapter.startUpdate(this);
 
