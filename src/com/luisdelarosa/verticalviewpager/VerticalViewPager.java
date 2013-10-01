@@ -22,7 +22,7 @@
  * 3/2013
  */
 
-
+package com.luisdelarosa.verticalviewpager;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -45,6 +45,7 @@ import android.support.v4.os.ParcelableCompatCreatorCallbacks;
 import android.support.v4.view.AccessibilityDelegateCompat;
 import android.support.v4.view.KeyEventCompat;
 import android.support.v4.view.MotionEventCompat;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.VelocityTrackerCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewConfigurationCompat;
@@ -70,7 +71,7 @@ import android.widget.Scroller;
 /**
  * Layout manager that allows the user to flip left and right
  * through pages of data.  You supply an implementation of a
- * {@link VerticalPagerAdapter} to generate the pages that the view shows.
+ * {@link PagerAdapter} to generate the pages that the view shows.
  *
  * <p>Note this class is currently under early design and
  * development.  The API will likely change in later updates of
@@ -97,12 +98,12 @@ import android.widget.Scroller;
  */
 public class VerticalViewPager extends ViewGroup {
     private static final String TAG = "VerticalViewPager";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
-    private static final boolean USE_CACHE = false;
+    private static final boolean USE_CACHE = true;
 
     private static final int DEFAULT_OFFSCREEN_PAGES = 1;
-    private static final int MAX_SETTLE_DURATION = 600; // ms
+    private static final int MAX_SETTLE_DURATION = 400; // ms
     private static final int MIN_DISTANCE_FOR_FLING = 25; // dips
 
     private static final int DEFAULT_GUTTER_SIZE = 16; // dips
@@ -139,7 +140,7 @@ public class VerticalViewPager extends ViewGroup {
 
     private final Rect mTempRect = new Rect();
 
-    private VerticalPagerAdapter mAdapter;
+    private VerticalStatePagerAdapter mAdapter;
     private int mCurItem;   // Index of currently displayed page.
     private int mRestoredCurItem = -1;
     private Parcelable mRestoredAdapterState = null;
@@ -337,7 +338,7 @@ public class VerticalViewPager extends ViewGroup {
      * Used internally to monitor when adapters are switched.
      */
     interface OnAdapterChangeListener {
-        public void onAdapterChanged(VerticalPagerAdapter oldAdapter, VerticalPagerAdapter newAdapter);
+        public void onAdapterChanged(PagerAdapter oldAdapter, PagerAdapter newAdapter);
     }
 
     /**
@@ -413,9 +414,9 @@ public class VerticalViewPager extends ViewGroup {
      *
      * @param adapter Adapter to use
      */
-    public void setAdapter(VerticalPagerAdapter adapter) {
+    public void setAdapter(PagerAdapter adapter) {
         if (mAdapter != null) {
-            mAdapter.unregisterDataSetObserver(mObserver);
+//            mAdapter.unregisterDataSetObserver(mObserver);
             mAdapter.startUpdate(this);
             for (int i = 0; i < mItems.size(); i++) {
                 final ItemInfo ii = mItems.get(i);
@@ -428,14 +429,14 @@ public class VerticalViewPager extends ViewGroup {
             scrollTo(0, 0);
         }
 
-        final VerticalPagerAdapter oldAdapter = mAdapter;
-        mAdapter = adapter;
+        final PagerAdapter oldAdapter = mAdapter;
+        mAdapter = (VerticalStatePagerAdapter) adapter;
 
         if (mAdapter != null) {
             if (mObserver == null) {
                 mObserver = new PagerObserver();
             }
-            mAdapter.registerDataSetObserver(mObserver);
+//            mAdapter.registerDataSetObserver(mObserver);
             mPopulatePending = false;
             mFirstLayout = true;
             if (mRestoredCurItem >= 0) {
@@ -470,7 +471,7 @@ public class VerticalViewPager extends ViewGroup {
      *
      * @return The currently registered PagerAdapter
      */
-    public VerticalPagerAdapter getAdapter() {
+    public PagerAdapter getAdapter() {
         return mAdapter;
     }
 
@@ -841,11 +842,11 @@ public class VerticalViewPager extends ViewGroup {
             final ItemInfo ii = mItems.get(i);
             final int newPos = mAdapter.getItemPosition(ii.object);
 
-            if (newPos == VerticalPagerAdapter.POSITION_UNCHANGED) {
+            if (newPos == PagerAdapter.POSITION_UNCHANGED) {
                 continue;
             }
 
-            if (newPos == VerticalPagerAdapter.POSITION_NONE) {
+            if (newPos == PagerAdapter.POSITION_NONE) {
                 mItems.remove(i);
                 i--;
 
@@ -918,17 +919,18 @@ public class VerticalViewPager extends ViewGroup {
         // on creating views from the time the user releases their finger to
         // fling to a new position until we have finished the scroll to
         // that position, avoiding glitches from happening at that point.
-        if (mPopulatePending) {
-            if (DEBUG) Log.i(TAG, "populate is pending, skipping for now...");
-            return;
-        }
+//        if (mPopulatePending) {
+//            if (DEBUG) Log.i(TAG, "populate is pending, skipping for now...");
+//            return;
+//        }
 
         // Also, don't populate until we are attached to a window.  This is to
         // avoid trying to populate before we have restored our view hierarchy
         // state and conflicting with what is restored.
-        if (getWindowToken() == null) {
-            return;
-        }
+//        if (getWindowToken() == null) {
+//        	if (DEBUG) Log.i(TAG, "no window");
+//            return;
+//        }
 
         mAdapter.startUpdate(this);
 
@@ -936,6 +938,8 @@ public class VerticalViewPager extends ViewGroup {
         final int startPos = Math.max(0, mCurItem - pageLimit);
         final int N = mAdapter.getCount();
         final int endPos = Math.min(N-1, mCurItem + pageLimit);
+        
+        Log.d(TAG, "populate startPos:" + startPos + " endPos:" + endPos + " N:" + N + " pageLimit:" + pageLimit);
 
         // Locate the currently focused item or add it if needed.
         int curIndex = -1;
@@ -948,8 +952,11 @@ public class VerticalViewPager extends ViewGroup {
             }
         }
 
+        Log.d(TAG, "curItem:" + curItem);
+        
         if (curItem == null && N > 0) {
             curItem = addNewItem(mCurItem, curIndex);
+            Log.d(TAG, "adding new item:" + curItem);
         }
 
         // Fill 3x the available width or up to the number of offscreen
@@ -971,7 +978,7 @@ public class VerticalViewPager extends ViewGroup {
                         mAdapter.destroyItem(this, pos, ii.object);
                         if (DEBUG) {
                             Log.i(TAG, "populate() - destroyItem() with pos: " + pos +
-                                    " view: " + ((View) ii.object));
+                                    " view: " + ii.object);
                         }
                         itemIndex--;
                         curIndex--;
@@ -1003,7 +1010,7 @@ public class VerticalViewPager extends ViewGroup {
                             mAdapter.destroyItem(this, pos, ii.object);
                             if (DEBUG) {
                                 Log.i(TAG, "populate() - destroyItem() with pos: " + pos +
-                                        " view: " + ((View) ii.object));
+                                        " view: " + ii.object);
                             }
                             ii = itemIndex < mItems.size() ? mItems.get(itemIndex) : null;
                         }
@@ -1752,6 +1759,7 @@ public class VerticalViewPager extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (DEBUG) Log.v(TAG, "onInterceptTouchEvent");
         /*
          * This method JUST determines whether we want to intercept the motion.
          * If we return true, onMotionEvent will be called and we do the actual

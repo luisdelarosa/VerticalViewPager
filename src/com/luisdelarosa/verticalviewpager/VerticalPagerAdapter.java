@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-
+package com.luisdelarosa.verticalviewpager;
 
 
 import android.database.DataSetObservable;

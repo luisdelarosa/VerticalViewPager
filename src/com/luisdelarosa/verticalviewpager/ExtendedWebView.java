@@ -1,3 +1,4 @@
+package com.luisdelarosa.verticalviewpager;
 
 import android.content.Context;
 import android.util.AttributeSet;
